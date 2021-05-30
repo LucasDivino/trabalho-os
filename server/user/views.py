@@ -51,7 +51,8 @@ class OptimalPath(APIView):
             for j in range(0, len(lugares)):
                 if lugares[j] != lugares[i]:
                     distancias_cliente[i][j] = distance((lugares[i].latitude, lugares[i].longitude), (lugares[j].latitude, lugares[j].longitude)).m
-
+        print(distancias_destino)
+        print(distancias_cliente)
         return {'distancias_motorista': distancias_motorista, 'distancias_cliente': distancias_cliente, 'distancias_destino': distancias_destino}
 
     def get(self, request):
@@ -78,7 +79,7 @@ class OptimalPath(APIView):
         model.xDestino = pyEnv.Var(model.Clientes, within=pyEnv.Binary)
 
         #Dummy variable ui
-        model.u = pyEnv.Var(model.Clientes, within=pyEnv.NonNegativeIntegers,bounds=(0, n-1))
+        model.u = pyEnv.Var(model.Clientes, within=pyEnv.NonNegativeIntegers,bounds=(0, n))
 
         model.dClientes = pyEnv.Param(model.Clientes, model.Clientes, initialize=lambda model, i, j: distancias['distancias_cliente'][i-1][j-1])
         model.dMotorista = pyEnv.Param(model.Clientes, initialize=lambda model, i: distancias['distancias_motorista'][i-1])
@@ -115,16 +116,16 @@ class OptimalPath(APIView):
 
         model.const4 = pyEnv.Constraint(model.Clientes, rule=sairCliente)
 
-        def rule_const3(model, i, j):
+        def rule_const5(model, i, j):
             if i!=j: 
-                return model.u[i] - model.u[j] + model.xClientes[i,j] * n <= n-1
+                return model.u[i] - model.u[j] + (model.xClientes[i,j] + model.xDestino[j] + model.xMotorista[i]) * n <= n
             else:
                 #Yeah, this else doesn't say anything
                 return model.u[i] - model.u[i] == 0 
             
-        model.const5 = pyEnv.Constraint(model.U, model.Clientes, rule=rule_const3)
+        model.const5 = pyEnv.Constraint(model.U, model.Clientes, rule=rule_const5)
 
-        solver = pyEnv.SolverFactory('cplex', executable='/opt/ibm/ILOG/CPLEX_Studio_Community201/cplex/bin/x86-64_linux/cplex')
+        solver = pyEnv.SolverFactory('cplex', executable='C:\Program Files\IBM\ILOG\CPLEX_Studio_Community201\cplex\\bin\\x64_win64\cplex')
         result = solver.solve(model, tee = False)
 
         print(result.problem.lower_bound)
@@ -134,21 +135,21 @@ class OptimalPath(APIView):
         for i in l:
             if model.xMotorista[i]() == 1:
                 print(i)
-                ordem.append({'name': lugares[i-1].name, 'latitude': lugares[i-1].latitude, 'longitude': lugares[i-1].longitude,'id': i})
+                #ordem.append({'name': lugares[i-1].name, 'latitude': lugares[i-1].latitude, 'longitude': lugares[i-1].longitude,'id': i})
 
         l = list(model.xClientes.keys())
         for i in l:
-            for j in l:
-                if model.xClientes[j]() == 1 and j[0] == ordem[-1]['id']:
-                    print(j)
-                    ordem.append({'name': lugares[j[1]-1].name, 'latitude': lugares[j[1]-1].latitude, 'longitude': lugares[j[1]-1].longitude,'id': j[1]})
+            #for j in l:
+            if model.xClientes[i]() == 1:
+                print(i)
+                    #ordem.append({'name': lugares[j[1]-1].name, 'latitude': lugares[j[1]-1].latitude, 'longitude': lugares[j[1]-1].longitude,'id': j[1]})
 
         l = list(model.xDestino.keys())
         for i in l:
             if model.xDestino[i]() == 1:
                 print(i)
             
-        ordem.append({'name': destino[0].name, 'latitude': destino[0].latitude, 'longitude': destino[0].longitude,'id': n+1})
+        #ordem.append({'name': destino[0].name, 'latitude': destino[0].latitude, 'longitude': destino[0].longitude,'id': n+1})
         return JsonResponse(ordem, safe=False)
 
     
