@@ -56,12 +56,14 @@ class OptimalPath(APIView):
 
     def get(self, request):
         user_id = self.request.query_params.get('user_id')
+        latitude_motorista = self.request.query_params.get('latitude')
+        longitude_motorista = self.request.query_params.get('longitude')
         lugares = Lugar.objects.filter(user_id=user_id, destino=False)
         destino = Lugar.objects.filter(user_id=user_id, destino=True)
 
         n = len(lugares)
         
-        coordenadaMotorista = (-19.920, -43.920)
+        coordenadaMotorista = (float(latitude_motorista), float(longitude_motorista))
 
         distancias = self.matriz_distancia(lugares, coordenadaMotorista, destino)
 
@@ -122,7 +124,7 @@ class OptimalPath(APIView):
             
         model.const5 = pyEnv.Constraint(model.U, model.Clientes, rule=rule_const3)
 
-        solver = pyEnv.SolverFactory('cplex', executable='C:\Program Files\IBM\ILOG\CPLEX_Studio_Community201\cplex\\bin\\x64_win64\cplex')
+        solver = pyEnv.SolverFactory('cplex', executable='/opt/ibm/ILOG/CPLEX_Studio_Community201/cplex/bin/x86-64_linux/cplex')
         result = solver.solve(model, tee = False)
 
         print(result.problem.lower_bound)
