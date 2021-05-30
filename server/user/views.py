@@ -72,7 +72,7 @@ class OptimalPath(APIView):
 
         model.Clientes = pyEnv.RangeSet(n)
         #Index for the dummy variable u
-        model.U = pyEnv.RangeSet(2, n)
+        model.U = pyEnv.RangeSet(n)
 
         model.xClientes = pyEnv.Var(model.Clientes, model.Clientes, within=pyEnv.Binary)
         model.xMotorista = pyEnv.Var(model.Clientes, within=pyEnv.Binary)
@@ -116,14 +116,15 @@ class OptimalPath(APIView):
 
         model.const4 = pyEnv.Constraint(model.Clientes, rule=sairCliente)
 
+        #Restrição de 
         def rule_const5(model, i, j):
             if i!=j: 
-                return model.u[i] - model.u[j] + (model.xClientes[i,j]) * n + model.xDestino[j] + model.xMotorista[i] <= n-1
+                return model.u[i] - model.u[j] + model.xClientes[i,j] * n <= n-1
             else:
                 #Yeah, this else doesn't say anything
                 return model.u[i] - model.u[i] == 0 
             
-        model.const5 = pyEnv.Constraint(model.U, model.Clientes, rule=rule_const5)
+        model.const5 = pyEnv.Constraint(model.Clientes, model.Clientes, rule=rule_const5)
 
         solver = pyEnv.SolverFactory('cplex', executable='C:\Program Files\IBM\ILOG\CPLEX_Studio_Community201\cplex\\bin\\x64_win64\cplex')
         result = solver.solve(model, tee = False)
