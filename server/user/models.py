@@ -13,5 +13,5 @@ class Lugar(models.Model):
         db_table = 'lugares'
 
     def __str__(self):
-        return self.nome
+        return self.name
 

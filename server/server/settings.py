@@ -118,7 +118,7 @@ SIMPLE_JWT = {
 
 DATABASES = {}
 
-DATABASES['default'] = dj_database_url.parse("postgres://postgres:123@localhost:5432/tp")
+DATABASES['default'] = dj_database_url.parse("postgres://postgres:postgres@localhost:5432/tp")
 
 
 
