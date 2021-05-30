@@ -118,7 +118,7 @@ class OptimalPath(APIView):
 
         def rule_const5(model, i, j):
             if i!=j: 
-                return model.u[i] - model.u[j] + (model.xClientes[i,j] + model.xDestino[j] + model.xMotorista[i]) * n <= n
+                return model.u[i] - model.u[j] + (model.xClientes[i,j] + model.xDestino[j]) * n <= n-1
             else:
                 #Yeah, this else doesn't say anything
                 return model.u[i] - model.u[i] == 0 
@@ -138,11 +138,11 @@ class OptimalPath(APIView):
                 ordem.append({'name': lugares[i-1].name, 'latitude': lugares[i-1].latitude, 'longitude': lugares[i-1].longitude,'id': i})
 
         l = list(model.xClientes.keys())
-        for i in l:
-            for j in l:
-                if model.xClientes[j]() == 1 and j[0] == ordem[-1]['id']:
-                    print(j)
-                    ordem.append({'name': lugares[j[1]-1].name, 'latitude': lugares[j[1]-1].latitude, 'longitude': lugares[j[1]-1].longitude,'id': j[1]})
+       
+        for j in l:
+            if model.xClientes[j]() == 1:
+                print(j)
+                #ordem.append({'name': lugares[j[1]-1].name, 'latitude': lugares[j[1]-1].latitude, 'longitude': lugares[j[1]-1].longitude,'id': j[1]})
 
         l = list(model.xDestino.keys())
         for i in l:
