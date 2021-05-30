@@ -118,7 +118,7 @@ class OptimalPath(APIView):
 
         def rule_const5(model, i, j):
             if i!=j: 
-                return model.u[i] - model.u[j] + (model.xClientes[i,j] + model.xDestino[j]) * n <= n-1
+                return model.u[i] - model.u[j] + (model.xClientes[i,j]) * n + model.xDestino[j] + model.xMotorista[i] <= n-1
             else:
                 #Yeah, this else doesn't say anything
                 return model.u[i] - model.u[i] == 0 
