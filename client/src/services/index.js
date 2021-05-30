@@ -16,12 +16,12 @@ export const post = async (url, params, headers) => {
   }
 };
 
-export const get = async (url) => {
+export const get = async (url, headers) => {
   try {
     const response = await axios({
       method: "get",
       url: `${baseUrl}${url}`,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...headers },
     });
     return response;
   } catch (error) {

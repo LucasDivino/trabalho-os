@@ -1,14 +1,12 @@
 import { Container, Grid, Icon, Typography } from "@material-ui/core";
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import RoomIcon from "@material-ui/icons/Room";
 import ReactMapGL, { GeolocateControl, Marker } from "react-map-gl";
+import AuthContext from "../../context";
+import { get } from "../../services";
 
 const TOKEN =
   "pk.eyJ1IjoibHVjYXNkaXZpbm8iLCJhIjoiY2twMDVvN3F6MTBtMjJwcGc5a216bGhtZSJ9.wOR3VpDuf_gN5uwrXYpY2g";
-
-// navigator.geolocation.getCurrentPosition((position) => {
-//   console.log(position.coords.latitude, position.coords.longitude);
-// });
 
 const geolocateStyle = {
   float: "left",
@@ -17,6 +15,9 @@ const geolocateStyle = {
 };
 
 const CadastrarAluno = () => {
+  const { auth } = useContext(AuthContext);
+  const [route, setRoute] = useState([]);
+
   const [viewport, setViewport] = useState({
     width: "100%",
     height: 600,
@@ -24,6 +25,18 @@ const CadastrarAluno = () => {
     longitude: 0,
     zoom: 1,
   });
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const response = await get(
+        `user/result?user_id=${auth.user}&latitude=${coords.latitude}&longitude=${coords.longitude}`,
+        { Authorization: `token ${auth.token}` }
+      );
+      setRoute(response.data);
+    });
+  }, [auth]);
+
+  console.log(route);
 
   return (
     <Container>
@@ -33,7 +46,12 @@ const CadastrarAluno = () => {
         </Grid>
         <Grid item xs={12}>
           <Typography>
-            O melhor caminho é: Casa, Pedro, João, Colégio. Nesta ordem
+            O melhor caminho para sua localização atual é:
+            {route.map((element, index) =>
+              index !== route.length - 1
+                ? ` ${element.name},`
+                : ` ${element.name}.`
+            )}
           </Typography>
           <ReactMapGL
             {...viewport}
@@ -46,66 +64,30 @@ const CadastrarAluno = () => {
               positionOptions={{ enableHighAccuracy: true }}
               trackUserLocation={true}
             />
-            <Marker
-              latitude={-19.837650144748974}
-              longitude={-43.97473440976715}
-              offsetLeft={-20}
-              offsetTop={-10}
-            >
-              <Icon color="primary">
-                <RoomIcon style={{ fontSize: 35 }} />
-              </Icon>
-              <Typography
-                style={{ fontSize: 10, marginLeft: 8, marginTop: -10 }}
+            {route.map((element, index) => (
+              <Marker
+                key={index}
+                latitude={parseFloat(element.latitude)}
+                longitude={parseFloat(element.longitude)}
+                offsetLeft={-20}
+                offsetTop={-10}
               >
-                Casa
-              </Typography>
-            </Marker>
-            <Marker
-              latitude={-19.835951854441088}
-              longitude={-43.974499475039956}
-              offsetLeft={-20}
-              offsetTop={-10}
-            >
-              <Icon color="primary">
-                <RoomIcon style={{ fontSize: 35 }} />
-              </Icon>
-              <Typography
-                style={{ fontSize: 10, marginLeft: 8, marginTop: -10 }}
-              >
-                Pedro
-              </Typography>
-            </Marker>
-            <Marker
-              latitude={-19.836181855916426}
-              longitude={-43.977345345625174}
-              offsetLeft={-20}
-              offsetTop={-10}
-            >
-              <Icon color="primary">
-                <RoomIcon style={{ fontSize: 35 }} />
-              </Icon>
-              <Typography
-                style={{ fontSize: 10, marginLeft: 8, marginTop: -10 }}
-              >
-                João
-              </Typography>
-            </Marker>
-            <Marker
-              latitude={-19.839895330111112}
-              longitude={-43.97770724349457}
-              offsetLeft={-20}
-              offsetTop={-10}
-            >
-              <Icon color="primary">
-                <RoomIcon style={{ fontSize: 35 }} />
-              </Icon>
-              <Typography
-                style={{ fontSize: 10, marginLeft: 8, marginTop: -10 }}
-              >
-                Colégio
-              </Typography>
-            </Marker>
+                <Icon color="primary">
+                  <RoomIcon style={{ fontSize: 35 }} />
+                </Icon>
+                <Typography
+                  color="dark"
+                  style={{
+                    fontSize: 12,
+                    marginLeft: 8,
+                    marginTop: -10,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {element.name}
+                </Typography>
+              </Marker>
+            ))}
           </ReactMapGL>
         </Grid>
       </Grid>
