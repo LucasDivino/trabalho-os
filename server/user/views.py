@@ -127,22 +127,26 @@ class OptimalPath(APIView):
 
         print(result.problem.lower_bound)
 
+        ordem = []
         l = list(model.xMotorista.keys())
         for i in l:
             if model.xMotorista[i]() == 1:
-                print(i,'--', model.xMotorista[i]())
+                print(i)
+                ordem.append({'name': lugares[i-1].name, 'latitude': lugares[i-1].latitude, 'longitude': lugares[i-1].longitude,'id': i})
 
         l = list(model.xClientes.keys())
         for i in l:
-            if model.xClientes[i]() == 1:
-                print(i,'--', model.xClientes[i]())
+            for j in l:
+                if model.xClientes[j]() == 1 and j[0] == ordem[-1]['id']:
+                    print(j)
+                    ordem.append({'name': lugares[j[1]-1].name, 'latitude': lugares[j[1]-1].latitude, 'longitude': lugares[j[1]-1].longitude,'id': j[1]})
 
         l = list(model.xDestino.keys())
         for i in l:
             if model.xDestino[i]() == 1:
-                print(i,'--', model.xDestino[i]())
+                print(i)
             
-
-        return JsonResponse((), safe=False)
+        ordem.append({'name': destino[0].name, 'latitude': destino[0].latitude, 'longitude': destino[0].longitude,'id': n+1})
+        return JsonResponse(ordem, safe=False)
 
     
